@@ -1,0 +1,260 @@
+<!-- <!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Голосовой агент</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; background: #f2f2f2; }
+    button { font-size: 1.2rem; padding: 1rem; margin: 1rem 0; }
+  </style>
+</head>
+<body>
+  <h2>🎙️ Нажмите кнопку и говорите</h2>
+  <button onclick="startRecording()">▶️ Начать запись</button>
+  <button onclick="stopRecording()">⏹️ Остановить и отправить</button>
+  <p><strong>Речь:</strong> <span id="text"></span></p>
+  <p><strong>Эмоция:</strong> <span id="emotion"></span> <span id="score"></span></p>
+
+  <script>
+    let mediaRecorder;
+    let audioChunks = [];
+
+    async function startRecording() {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+      mediaRecorder.start();
+      audioChunks = [];
+
+      mediaRecorder.ondataavailable = event => {
+        audioChunks.push(event.data);
+      };
+    }
+
+    async function stopRecording() {
+        mediaRecorder.stop();
+        mediaRecorder.onstop = async () => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            const arrayBuffer = await audioBlob.arrayBuffer();
+
+            try {
+            const audioBuffer = await decodeAudioData(arrayBuffer);
+            const wavBlob = encodeWav(audioBuffer);
+
+            const formData = new FormData();
+            formData.append("file", wavBlob, "audio.wav");
+
+            const res = await fetch("/analyze", {
+                method: "POST",
+                body: formData
+            });
+
+            const data = await res.json();
+
+            console.log("📊 DEBUG response:", data);  // <== Вот это добавим
+
+            document.getElementById("text").innerText = data.text || "—";
+            document.getElementById("emotion").innerText = data.emotion || "—";
+            document.getElementById("score").innerText = data.score ? `(${data.score}%)` : "";
+            } catch (err) {
+            console.error("❌ Ошибка при отправке/обработке:", err);
+            alert("Ошибка обработки аудио или сервера. Проверь консоль.");
+            }
+        };
+        }
+
+
+    async function decodeAudioData(buffer) {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      return await ctx.decodeAudioData(buffer);
+    }
+
+    function encodeWav(audioBuffer) {
+        const targetSampleRate = 16000;
+        const monoData = audioBuffer.getChannelData(0); // только 1 канал
+
+        // Ресэмплинг: пропорциональное уменьшение длины
+        const ratio = audioBuffer.sampleRate / targetSampleRate;
+        const newLength = Math.floor(monoData.length / ratio);
+        const resampledData = new Float32Array(newLength);
+        for (let i = 0; i < newLength; i++) {
+            resampledData[i] = monoData[Math.floor(i * ratio)];
+        }
+
+        const buffer = new ArrayBuffer(44 + newLength * 2);
+        const view = new DataView(buffer);
+
+        writeUTFBytes(view, 0, 'RIFF');
+        view.setUint32(4, 36 + newLength * 2, true);
+        writeUTFBytes(view, 8, 'WAVE');
+        writeUTFBytes(view, 12, 'fmt ');
+        view.setUint32(16, 16, true); // PCM
+        view.setUint16(20, 1, true);  // Linear quantization
+        view.setUint16(22, 1, true);  // Mono
+        view.setUint32(24, targetSampleRate, true);
+        view.setUint32(28, targetSampleRate * 2, true); // byte rate
+        view.setUint16(32, 2, true); // block align
+        view.setUint16(34, 16, true); // bits per sample
+        writeUTFBytes(view, 36, 'data');
+        view.setUint32(40, newLength * 2, true);
+
+        // PCM samples
+        let offset = 44;
+        for (let i = 0; i < newLength; i++) {
+            const s = Math.max(-1, Math.min(1, resampledData[i]));
+            view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+            offset += 2;
+        }
+
+        return new Blob([view], { type: 'audio/wav' });
+        }
+
+
+    function writeUTFBytes(view, offset, string) {
+      for (let i = 0; i < string.length; i++) {
+        view.setUint8(offset + i, string.charCodeAt(i));
+      }
+    }
+  </script>
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>🎙️ Агент по голосу</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; background: #f2f2f2; }
+    button { font-size: 1.2rem; padding: 1rem 2rem; margin: 1rem 1rem 0 0; cursor: pointer; }
+    .result { margin-top: 2rem; }
+    .advice { font-size: 1.1rem; margin-top: 1rem; background: #fff9c4; padding: 1rem; border-radius: 8px; }
+  </style>
+</head>
+<body>
+  <h2>🧠 Голосовой агент продаж</h2>
+  <button id="recordBtn" onclick="toggleRecording()">▶️ Начать запись</button>
+  <button onclick="analyze()">📤 Отправить на анализ</button>
+
+  <div class="result">
+    <p><strong>🗣️ Речь:</strong> <span id="text">—</span></p>
+    <p><strong>🧠 Эмоция:</strong> <span id="emotion">—</span> <span id="score"></span></p>
+    <div id="advice" class="advice">💡 Подсказка появится после анализа</div>
+  </div>
+
+  <script>
+    let isRecording = false;
+    let recorder, stream;
+    let chunks = [];
+
+    const moodMap = {
+      "Радость": "✅ Продолжай — клиент позитивно настроен",
+      "Грусть": "🤝 Прояви эмпатию, уточни, в чём проблема",
+      "Гнев": "⚠️ Сохрани спокойствие, выслушай внимательно",
+      "Энтузиазм": "🚀 Отличный момент для предложения сделки",
+      "Удивление": "🧐 Уточни, что именно вызвало удивление",
+      "Отвращение": "❌ Смени подход или тему, не настаивай",
+      "Страх": "💬 Успокой, убери риски, предложи гарантию",
+      "Вина": "🔄 Предложи компромисс, не дави",
+      "Стыд": "🧘 Будь мягким, не усиливай дискомфорт",
+      "Нейтрально": "ℹ️ Задай уточняющий вопрос, активируй интерес"
+    };
+
+    async function toggleRecording() {
+      const btn = document.getElementById("recordBtn");
+
+      if (!isRecording) {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        recorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+        recorder.ondataavailable = e => chunks.push(e.data);
+        recorder.start();
+        btn.textContent = "⏹️ Остановить запись";
+        isRecording = true;
+      } else {
+        recorder.stop();
+        stream.getTracks().forEach(t => t.stop());
+        btn.textContent = "▶️ Начать запись";
+        isRecording = false;
+      }
+    }
+
+    async function analyze() {
+      if (chunks.length === 0) {
+        alert("Сначала запишите голос!");
+        return;
+      }
+
+      try {
+        const blob = new Blob(chunks, { type: 'audio/webm' });
+        chunks = []; // очистить буфер после анализа
+
+        const arrayBuffer = await blob.arrayBuffer();
+        const audioBuffer = await decodeAudioData(arrayBuffer);
+        const wavBlob = encodeWav(audioBuffer);
+
+        const formData = new FormData();
+        formData.append("file", wavBlob, "audio.wav");
+
+        const res = await fetch("/analyze", {
+          method: "POST",
+          body: formData
+        });
+
+        const data = await res.json();
+        document.getElementById("text").innerText = data.text || "—";
+        document.getElementById("emotion").innerText = data.emotion || "—";
+        document.getElementById("score").innerText = data.score ? `(${data.score}%)` : "";
+        document.getElementById("advice").innerText = `💡 ${moodMap[data.emotion] || "Нет совета"}`;
+      } catch (err) {
+        console.error("❌ Ошибка анализа:", err);
+        alert("Ошибка при анализе. Проверь консоль.");
+      }
+    }
+
+    async function decodeAudioData(buffer) {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      return await ctx.decodeAudioData(buffer);
+    }
+
+    function encodeWav(audioBuffer) {
+      const targetSampleRate = 16000;
+      const monoData = audioBuffer.getChannelData(0);
+      const ratio = audioBuffer.sampleRate / targetSampleRate;
+      const newLength = Math.floor(monoData.length / ratio);
+      const resampled = new Float32Array(newLength);
+      for (let i = 0; i < newLength; i++) resampled[i] = monoData[Math.floor(i * ratio)];
+
+      const buffer = new ArrayBuffer(44 + newLength * 2);
+      const view = new DataView(buffer);
+
+      writeUTFBytes(view, 0, 'RIFF');
+      view.setUint32(4, 36 + newLength * 2, true);
+      writeUTFBytes(view, 8, 'WAVE');
+      writeUTFBytes(view, 12, 'fmt ');
+      view.setUint32(16, 16, true);
+      view.setUint16(20, 1, true);
+      view.setUint16(22, 1, true);
+      view.setUint32(24, targetSampleRate, true);
+      view.setUint32(28, targetSampleRate * 2, true);
+      view.setUint16(32, 2, true);
+      view.setUint16(34, 16, true);
+      writeUTFBytes(view, 36, 'data');
+      view.setUint32(40, newLength * 2, true);
+
+      let offset = 44;
+      for (let i = 0; i < newLength; i++) {
+        const s = Math.max(-1, Math.min(1, resampled[i]));
+        view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+        offset += 2;
+      }
+
+      return new Blob([view], { type: 'audio/wav' });
+    }
+
+    function writeUTFBytes(view, offset, string) {
+      for (let i = 0; i < string.length; i++) {
+        view.setUint8(offset + i, string.charCodeAt(i));
+      }
+    }
+  </script>
+</body>
+</html>

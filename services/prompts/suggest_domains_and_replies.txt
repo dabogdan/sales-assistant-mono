@@ -1,0 +1,21 @@
+Given a business type: "{business}", generate 5 common FAQ-style domains representing general customer concerns.
+
+Each domain must:
+- be short, 2–4 words (not full sentences),
+- be a general category or topic of concern,
+- be semantically meaningful and specific enough for classification,
+- be compatible with models like facebook/bart-large-mnli,
+- avoid vague or overly broad terms.
+
+For each domain, provide 3 example **answers** a customer service agent might give in response to typical questions **within** that domain.
+
+Avoid including any customer questions. Write only the agent’s responses. Keep responses brief, helpful, and natural.
+
+Format your output **exactly** like this:
+
+- domain name (lowercase, no punctuation):
+  - answer 1
+  - answer 2
+  - answer 3
+
+Only return the list. Do not include explanations, questions, or introductory text.

@@ -1,0 +1,19 @@
+You are an assistant helping with customer support for {business}. A user has a concern related to the domain: "{domain}".
+
+Generate 3 short and helpful responses a customer service agent might give for typical questions in this domain.
+
+Each response must:
+- be natural and friendly,
+- consist of a concise phrase or 1–2 short sentences,
+- **start with a dash and a space ("- ")**,
+- **NOT include any labels like "Answer 1:", "Response:", etc.**
+
+Only return the bullet points. Do not include any titles, explanations, or extra text.
+
+Format your output **exactly** like this:
+
+- response 1
+- response 2
+- response 3
+
+Suggestions:

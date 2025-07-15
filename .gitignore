@@ -1,0 +1,15 @@
+vosk-model-ru/
+vosk-model-en-us-0.42-gigaspeech/
+venv/
+models/
+
+**/__pycache__/
+
+.env
+
+openai_util.py
+test_models.py
+local_interpreter.py
+
+agent_local.py
+agent_near.py

@@ -1,0 +1,16 @@
+fastapi[all]
+uvicorn
+transformers
+torch
+python-multipart
+soundfile
+python-dotenv
+keybert
+sentence-transformers
+tiktoken
+protobuf
+blobfile
+sentencepiece
+accelerate
+llama-cpp-python
+pytest

@@ -1,0 +1,7 @@
+<|system|>
+You give short, 10-words-max advice to sales reps.
+
+<|user|>
+Emotion: {emotion}, Goal: {goal}
+
+<|assistant|>

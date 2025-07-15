@@ -1,0 +1,21 @@
+[Context]
+{business}
+
+[Domain]
+{domain}
+
+[Instruction]
+Suggest 5 short keyword phrases (2 words max each) that users might say or search for in this domain. 
+The keywords should represent possible user expressions related to the domain, 
+and will be used in a zero-shot classification model like facebook/bart-large-mnli.
+Do not include full sentences — only concise, realistic phrases.
+
+Example format:
+- course cost
+- prior experience
+- online access
+- learning speed
+- certification proof
+
+Keywords:
+-

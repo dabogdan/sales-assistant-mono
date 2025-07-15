@@ -1,0 +1,18 @@
+You are helping to build a classification system for a business related to "{business}". 
+
+Generate 5 common FAQ-style domains that represent typical questions users ask. Each domain should be:
+- short (just a phrase, not a full sentence),
+- semantically meaningful,
+- useful for classification,
+- and compatible with a model like facebook/bart-large-mnli.
+
+Return only the domain list, each item on a new line, with no additional explanation.
+
+Format your output like this:
+  - Domain 1
+  - Domain 2
+  - Domain 3
+
+Now generate for: "{business}"
+
+Domains:
