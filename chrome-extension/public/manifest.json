@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "short_name": "AI Sales Assistant",
+  "name": "AI Sales Assistant",
+  "version": "1.0",
+  "description": "An extension that records audio and transcribes it to text.",
+  "action": {
+    "default_title": "AI Sales Assistant"
+  },
+  "background": {
+    "service_worker": "service-worker.js"
+  },
+  "permissions": [
+    "tabCapture",
+    "offscreen",
+    "contentSettings",
+    "scripting",
+    "activeTab",
+    "tabs",
+    "sidePanel"
+  ],
+  "host_permissions": ["<all_urls>"]
+}

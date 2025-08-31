@@ -1,0 +1,15 @@
+.main {
+  padding: 20px;
+}
+
+.nav {
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  .title {
+    font-size: 24px;
+    font-weight: bold;
+  }
+}
