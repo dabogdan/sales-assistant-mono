@@ -7,6 +7,8 @@
   td {
     border: 1px solid #ddd;
     padding: 8px;
+    text-align: center;
+    width: fit-content;
   }
 
   th {
@@ -14,8 +16,19 @@
     text-align: center;
   }
 
-  tr:nth-child(even) {
-    background-color: #fafafa;
+  .row {
+    vertical-align: sub;
+    &:nth-child(even) {
+      background-color: #fafafa;
+    }
+  }
+
+  .cell {
+    position: relative;
+  }
+
+  .buttonCell {
+    width: 10%;
   }
 }
 
@@ -24,4 +37,11 @@
   border: none;
   outline: none;
   background: transparent;
+}
+
+.loader {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }

@@ -7,16 +7,16 @@ class CaptureAudio {
     this.handleEvents();
   }
 
-  requestUserPermission() {
-    try {
-      navigator.mediaDevices.getUserMedia({
-        audio: true,
-        video: false,
-      });
-    } catch (error) {
-      console.error("Get user permission failed:", error);
-    }
-  }
+  // requestUserPermission() {
+  //   try {
+  //     navigator.mediaDevices.getUserMedia({
+  //       audio: true,
+  //       video: false,
+  //     });
+  //   } catch (error) {
+  //     console.error("Get user permission failed:", error);
+  //   }
+  // }
 
   handleEvents() {
     chrome.runtime.onMessage.addListener(
@@ -37,7 +37,12 @@ class CaptureAudio {
                 video: false,
               });
 
-            this.audioProcessor = new AudioProcessor(audioDisplayStream);
+            this.audioProcessor = new AudioProcessor(
+              audioDisplayStream,
+              message.keywords_map,
+              message.domain_response_map,
+              message.business_name
+            );
             this.audioProcessor.startRecording();
           } else {
             if (this.audioProcessor) this.audioProcessor.stopRecording();
@@ -52,7 +57,12 @@ class CaptureAudio {
 new CaptureAudio();
 
 class AudioProcessor {
-  constructor(audioDisplayStream) {
+  constructor(
+    audioDisplayStream,
+    keywords_map,
+    domain_response_map,
+    business_name
+  ) {
     this.audioDisplayStream = audioDisplayStream;
     this.mediaRecorder = null;
     this.audioChunks = [];
@@ -61,27 +71,37 @@ class AudioProcessor {
     this.socket = null;
     this.socketReady = false;
     this.latestTranscript = "";
+    this.keywords_map = keywords_map;
+    this.domain_response_map = domain_response_map;
+    this.business_name = business_name;
+  }
+
+  stopMediaStreamTracks() {
+    if (this.audioDisplayStream)
+      this.audioDisplayStream.getTracks().forEach((t) => t.stop());
   }
 
   initWebSocket() {
     return new Promise((resolve) => {
-      this.socket = new WebSocket("ws://localhost:8000/ws/emotion");
+      this.socket = new WebSocket("ws://localhost:8000/ws/summary");
 
       this.socket.onopen = () => {
-        console.log("🔌 WebSocket opened");
+        console.log("WebSocket opened");
         this.socketReady = true;
         resolve();
       };
 
       this.socket.onmessage = (event) => {
         const data = JSON.parse(event.data);
-        console.log("🧠 Emotion message:", data);
+        // console.log("data from server:", data);
 
         chrome.runtime.sendMessage({
           target: "APP",
-          audio_emotion: data.audio_emotion.label,
-          audio_score: data.audio_emotion.score,
+          transcript: data.transcript,
+          audio_emotion_label: data.audio_emotion?.label,
+          audio_emotion_score: data.audio_emotion?.score,
           text_emotions: data.text_emotions,
+          keywords: data.keywords,
           domain: data.domain,
           desired_response: data.desired_response,
           emotionally_aware_response: data.emotionally_aware_response,
@@ -90,11 +110,24 @@ class AudioProcessor {
 
       this.socket.onerror = (e) => {
         console.error("WebSocket error:", e);
+        this.socketReady = false;
+        // this.stopMediaRecorderTracks();
+        this.stopMediaStreamTracks();
+        chrome.runtime.sendMessage({
+          target: "APP",
+          action: "WEBSOCKET_ERROR",
+        });
       };
 
       this.socket.onclose = () => {
-        console.log("🔌 WebSocket closed");
+        console.log("WebSocket closed");
         this.socketReady = false;
+        // this.stopMediaRecorderTracks();
+        this.stopMediaStreamTracks();
+        chrome.runtime.sendMessage({
+          target: "APP",
+          action: "WEBSOCKET_CLOSED",
+        });
       };
     });
   }
@@ -174,7 +207,7 @@ class AudioProcessor {
     };
 
     this.mediaRecorder.ondataavailable = (event) => {
-      console.log("📦 Audio data available", event.data);
+      // console.log("📦 Audio data available", event.data);
 
       if (event.data.size > 0) {
         const reader = new FileReader();
@@ -186,6 +219,11 @@ class AudioProcessor {
             transcript: this.latestTranscript,
             timestamp: Date.now(),
           };
+
+          if (this.keywords_map && this.domain_response_map) {
+            payload.keywords_map = this.keywords_map;
+            payload.domain_response_map = this.domain_response_map;
+          }
 
           if (this.socket && this.socket.readyState === WebSocket.OPEN) {
             this.socket.send(JSON.stringify(payload));
@@ -207,12 +245,17 @@ class AudioProcessor {
     };
 
     this.mediaRecorder.start(1000); // 1s chunks
-    console.log("⏺️ MediaRecorder started");
+    console.log("MediaRecorder started");
     this.isRecording = true;
   }
 
+  stopMediaRecorderTracks() {
+    if (this.mediaRecorder)
+      this.mediaRecorder.stream.getTracks().forEach((t) => t.stop());
+  }
+
   stopRecording() {
-    console.log("🛑 stopRecording called");
+    console.log("stopRecording called");
 
     if (this.speechRecognition) {
       this.speechRecognition.stop();
@@ -220,8 +263,7 @@ class AudioProcessor {
 
     if (this.mediaRecorder && this.isRecording) {
       // Stopping the tracks.
-      this.mediaRecorder.stream.getTracks().forEach((t) => t.stop());
-
+      this.stopMediaRecorderTracks();
       this.mediaRecorder.stop();
       this.isRecording = false;
     }

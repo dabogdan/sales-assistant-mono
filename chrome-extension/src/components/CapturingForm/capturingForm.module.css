@@ -1,0 +1,17 @@
+.capturingForm {
+  background-color: #ffffff;
+  display: grid;
+  grid-template-columns: auto;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.button {
+  composes: disabled from "@/commonStyles.module.css";
+  background-color: #1f2937;
+  color: white;
+  border: none;
+  padding: 0.8rem 1rem;
+  cursor: pointer;
+  border-radius: 5px;
+}

@@ -1,3 +1,14 @@
+.inputContainer {
+  margin-bottom: 40px;
+  position: relative;
+}
+
+.inputWrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .input {
   width: 100%;
   padding: 10px 12px;
@@ -13,6 +24,13 @@
   border-color: #0078d4;
 }
 
+.attentionText {
+  color: #0078d4;
+  font-weight: 500;
+  font-size: 14px;
+  margin-top: 5px;
+}
+
 .label {
   display: block;
   margin-bottom: 6px;
@@ -20,4 +38,36 @@
   color: #333;
   font-weight: 500;
   letter-spacing: 0.02em;
+}
+
+.saveButton {
+  composes: disabled from "@/commonStyles.module.css";
+
+  margin-left: 10px;
+  height: 100%;
+  min-width: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #0078d4;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover,
+  &:focus {
+    background-color: #005fa3;
+  }
+
+  /* &:disabled {
+    background-color: #b3c6d9;
+    color: #7a8fa6;
+    cursor: not-allowed;
+    opacity: 0.7;
+  } */
 }

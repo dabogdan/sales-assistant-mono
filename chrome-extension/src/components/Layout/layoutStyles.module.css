@@ -1,15 +1,44 @@
 .main {
+  margin-left: auto;
+  margin-right: auto;
   padding: 20px;
+  min-width: 350px;
+  width: 100%;
 }
 
 .nav {
+  height: 80px;
   padding: 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  position: sticky;
+  z-index: 1;
+  top: 0;
+  background: #ffffff;
+  box-shadow: 2px 2px 5px grey;
+}
+
+.navContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-grow: 1;
 
   .title {
     font-size: 24px;
     font-weight: bold;
+  }
+}
+.link {
+  margin-top: 10px;
+  text-decoration: none;
+  color: #000;
+  font-size: 18px;
+  text-align: end;
+
+  &:hover {
+    text-decoration: underline;
+    cursor: pointer;
   }
 }

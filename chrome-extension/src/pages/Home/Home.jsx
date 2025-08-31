@@ -1,150 +1,87 @@
 /*global chrome*/
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import "./Home.css";
-import { CaptureIndicator } from "@/components";
-
-const splitResponse = (str) => {
-  const sentences = str.split("- ");
-  const clinnedSentences = sentences.filter(
-    (sentence) => sentence.trim() !== ""
-  );
-
-  const orderedSentences = clinnedSentences.map(
-    (sentence, indx) => `${indx + 1}) ` + sentence.trim()
-  );
-
-  return orderedSentences;
-};
+import {
+  AdviserInfo,
+  CaptureIndicator,
+  CapturingForm,
+  CommonError,
+} from "@/components";
+import {
+  audioEmotionSetSelector,
+  desiredResponseSetSelector,
+  domainEmotionSetSelector,
+  emotionalyAwareResponseSetSelector,
+  keywordsSetSelector,
+  textEmotionsSetSelector,
+  transcriptSetSelector,
+  useShallowStore,
+} from "@/store";
 
 export function Home() {
-  const [audioEmotion, setAudioEmotion] = useState("");
-  // const [textEmotion, setTextEmotion] = useState(null);
-  const [domain, setDomain] = useState("");
-  const [desiredResponse, setDesiredResponse] = useState("");
-  const [emotionallyAwareResponse, setEmotionallyAwareResponse] = useState("");
-  const [currentTabId, setCurrentTabId] = useState(null);
-  const [isClearShown, setIsClearShown] = useState(false);
-  const [isCapturing, setIsCapturing] = useState(false);
+  const { transcript, setTranscript } = useShallowStore(transcriptSetSelector);
+  const { setAudioEmotion } = useShallowStore(audioEmotionSetSelector);
+  const { setDomain } = useShallowStore(domainEmotionSetSelector);
+  const { setDesiredResponse } = useShallowStore(desiredResponseSetSelector);
+  const { setEmotionallyAwareResponse } = useShallowStore(
+    emotionalyAwareResponseSetSelector
+  );
+  const { setTextEmotions } = useShallowStore(textEmotionsSetSelector);
+  const { setKeywords } = useShallowStore(keywordsSetSelector);
 
   useEffect(() => {
     if (chrome && chrome.runtime) {
       chrome.runtime.onMessage.addListener(function (message) {
         if (message.target !== "APP") return;
-        if (message.currentTabId) {
-          setCurrentTabId(message.currentTabId);
+
+        const {
+          transcript,
+          audio_emotion_label,
+          audio_emotion_score,
+          text_emotions,
+          keywords,
+          domain,
+          desired_response,
+          emotionally_aware_response,
+        } = message;
+
+        if (transcript) setTranscript(transcript);
+
+        if (audio_emotion_label && audio_emotion_score) {
+          setAudioEmotion(`${audio_emotion_label} (${audio_emotion_score}%)`);
         }
-        if (message.audio_emotion && message.audio_score) {
-          setAudioEmotion(`${message.audio_emotion} (${message.audio_score}%)`);
+        if (text_emotions) {
+          setTextEmotions(text_emotions);
         }
-        if (message.domain) {
-          setDomain(message.domain);
+        if (keywords) setKeywords(keywords);
+        if (domain) {
+          setDomain(domain);
         }
-        if (message.desired_response) {
-          setDesiredResponse(message.desired_response);
+        if (desired_response) {
+          setDesiredResponse(desired_response);
         }
-        if (message.emotionally_aware_response) {
-          setEmotionallyAwareResponse(
-            splitResponse(message.emotionally_aware_response)
-          );
+        if (emotionally_aware_response) {
+          setEmotionallyAwareResponse(emotionally_aware_response);
         }
       });
     }
-  }, []);
-
-  async function getMediaStreamId(targetTabId) {
-    const streamId = await chrome.tabCapture.getMediaStreamId({ targetTabId });
-    console.log("Media Stream ID:", streamId);
-    return streamId;
-  }
-
-  async function handleMediaCapture(value) {
-    try {
-      let action, isCapturing, streamId;
-
-      if (value === "start") {
-        action = "START_CAPTURE";
-        isCapturing = true;
-        streamId = await getMediaStreamId(currentTabId);
-      } else if (value === "stop") {
-        action = "STOP_CAPTURE";
-        isCapturing = false;
-        setIsClearShown(true);
-      }
-
-      setIsCapturing(isCapturing);
-
-      chrome.runtime.sendMessage({
-        streamId,
-        action,
-        target: "SERVICE_WORKER",
-      });
-    } catch (error) {
-      console.error("Capture error:", error);
-    }
-  }
-
-  function handleClear() {
-    setAudioEmotion("");
-    setDomain("");
-    setDesiredResponse("");
-    setEmotionallyAwareResponse("");
-    setIsClearShown(false);
-  }
+  }, [
+    setAudioEmotion,
+    setDesiredResponse,
+    setDomain,
+    setEmotionallyAwareResponse,
+    setKeywords,
+    setTextEmotions,
+    setTranscript,
+  ]);
 
   return (
     <div className="container">
-      <CaptureIndicator isCapturing={isCapturing} />
-      <form className="capturing-form">
-        <button
-          type="button"
-          onClick={() => handleMediaCapture("start")}
-          disabled={isCapturing}
-          className="button"
-        >
-          Start Capturing
-        </button>
-        <button
-          type="button"
-          onClick={() => handleMediaCapture("stop")}
-          disabled={!isCapturing}
-          className="button"
-        >
-          Stop Capturing
-        </button>
-        {isClearShown && (
-          <button type="button" onClick={handleClear} className="button">
-            Clear
-          </button>
-        )}
-      </form>
-      <div className="adviser-info">
-        {audioEmotion && (
-          <div>
-            <b>Detected Audio Emotion:</b> {audioEmotion}
-          </div>
-        )}
-        {domain && (
-          <div>
-            <b>Domain:</b> {domain}
-          </div>
-        )}
-        {desiredResponse && (
-          <div>
-            <b>Desired Response: </b>
-            {desiredResponse}
-          </div>
-        )}
-        {emotionallyAwareResponse && (
-          <div>
-            <b>Emotionally Aware Response:</b>
-            <div>
-              {emotionallyAwareResponse.map((sentence) => (
-                <p key={sentence}>{sentence}</p>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
+      <CaptureIndicator />
+      <div className="transcript">{transcript}</div>
+      <CapturingForm />
+      <CommonError />
+      <AdviserInfo />
     </div>
   );
 }

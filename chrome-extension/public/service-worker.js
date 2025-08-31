@@ -1,26 +1,27 @@
 /*global chrome */
 
-// on icon click, open the side panel (showing index.html)
-// NOTE: this requires "sidePanel" permission in manifest.json
+// on icon click, open a window
 chrome.action.onClicked.addListener(async (tab) => {
-  try {
-    await chrome.sidePanel.setOptions({
-      tabId: tab.id,
-      path: "index.html",
-      enabled: true,
-    });
-    await chrome.sidePanel.open({ tabId: tab.id });
-  } catch (e) {
-    console.warn("Failed to open side panel:", e);
-  }
-
-  setTimeout(() => {
-    chrome.runtime.sendMessage({
-      target: "APP",
-      currentTabId: tab.id,
-    });
-  }, 300);
+  chrome.sidePanel.setOptions({
+    path: "index.html",
+    tabId: tab.id,
+    enabled: true,
+  });
+  // chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
+  chrome.sidePanel.open({ tabId: tab.id });
 });
+
+// chrome.runtime.onConnect.addListener(function (port) {
+//   if (port.name !== "sidePanelToggle") return;
+
+//   port.onDisconnect.addListener(async () => {
+//     const result = await chrome.storage.local.get(["isSidePanelOpen"]);
+//     const isSidePanelOpen = result["isSidePanelOpen"];
+//     await chrome.storage.local.set({ ["isSidePanelOpen"]: !isSidePanelOpen });
+//   });
+// });
+
+// let streamId = null;
 
 chrome.runtime.onMessage.addListener(async (message) => {
   if (message.target !== "SERVICE_WORKER") return;
@@ -40,10 +41,21 @@ chrome.runtime.onMessage.addListener(async (message) => {
     });
   }
 
+  // if (!streamId) {
+  //   streamId = await chrome.tabCapture.getMediaStreamId({
+  //     targetTabId: message.currentTabId,
+  //   });
+  // }
+
   // Send the stream ID to the offscreen document to start recording.
   await chrome.runtime.sendMessage({
     action: message.action,
     streamId: message.streamId,
+    keywords_map: message.keywords_map,
+    domain_response_map: message.domain_response_map,
+    business_name: message.business_name,
     target: "OFFSCREEN",
   });
+
+  // chrome.action.setIcon({ path: "/icons/recording.png" });
 });
