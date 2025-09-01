@@ -1,6 +1,6 @@
 import styles from "./businessTypeInputStyles.module.css";
 import { useEffect, useState } from "react";
-import { Loader, WaitWarning } from "..";
+import { ConcernsList, Loader, WaitWarning } from "..";
 import {
   businessTypeStorageSetSelector,
   concernsAdvicesStorageSetSelector,
@@ -10,6 +10,7 @@ import {
   isDisabledSetSelector,
   useShallowStore,
 } from "@/store";
+import { DEFAULT_CONCERNS } from "@/components/ConcernsList/ConcernsList";
 // import { simulateApiResponse } from "@/helpers";
 // import { suggestionsRes } from "@/mockData";
 
@@ -66,70 +67,83 @@ export function BusinessTypeInput() {
   };
 
   const handleGenerateClick = async () => {
-    try {
-      setShouldShowLoader(true);
-      setIsAllDisabled(true);
-      setIsWarningShown(true);
-      setBusinessTypeStorage(value);
-      setIsGgenerateButtonDisabled(true);
+    setShouldShowLoader(true);
+    setIsAllDisabled(true);
+    setIsWarningShown(true);
+    setBusinessTypeStorage(value);
+    setIsGgenerateButtonDisabled(true);
 
+    // reset UI before fetching
+    setConcerns([...DEFAULT_CONCERNS]);
+    setConcernsAdvicesStorage([]);
+
+    try {
       const res = await fetch(import.meta.env.VITE_URL_AUTO_SUGGEST, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ business: businessTypeStorage }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ business: value }),
       });
+      if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
 
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
+      let buffer = "";
+      let parsedOnce = false;
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
         const chunk = decoder.decode(value, { stream: true });
+        const m = chunk.match(/\[PROGRESS\s+(\d+)%\]/);
+        if (m) setPercents(m[1]);
 
-        const percents = chunk.match(/\d{1,2}/)?.[0];
-        setPercents(percents);
+        buffer += chunk;
 
-        const suggestionsJSON = chunk
-          .replace(/\[.+\]/, "")
-          .replace(/[\r\n]*/g, "");
-        if (suggestionsJSON) {
-          const suggestions = JSON.parse(suggestionsJSON);
-          const suggestionsArr = Object.entries(suggestions).map(
-            ([concern, advices]) => ({
-              concern,
-              advice: advices[0],
-            })
-          );
+        if (!parsedOnce) {
+          const mark = buffer.indexOf("[PARSED_OUTPUT]");
+          if (mark !== -1) {
+            const jsonStart = buffer.indexOf("{", mark);
+            if (jsonStart !== -1) {
+              const jsonStr = buffer.slice(jsonStart).replace(/[\r\n]*/g, "");
+              try {
+                const suggestions = JSON.parse(jsonStr);
+                console.log(suggestions);
 
-          // If there are more than 5 suggestions, keep only the first 5
-          if (suggestionsArr.length > 5) {
-            suggestionsArr.splice(5);
+                // normalize: backend may return a string or an array with one item
+                const suggestionsArr = Object.entries(suggestions).map(([concern, adv]) => ({
+                  concern,
+                  advice: Array.isArray(adv) ? adv[0] : String(adv ?? "").trim(),
+                }));
+
+                // cap to 30 per the new prompt
+                if (suggestionsArr.length > 30) suggestionsArr.length = 30;
+
+                const llmTagged = suggestionsArr.map(x => ({ ...x, source: "llm" }));
+                setConcerns([...DEFAULT_CONCERNS, ...llmTagged]);
+                parsedOnce = true;
+              } catch {
+                // partial JSON, keep buffering
+              }
+            }
           }
-
-          const suggestionsJoined = concerns.concat(suggestionsArr);
-          setConcerns(suggestionsJoined);
         }
       }
-      setShouldShowLoader(false);
-      setIsAllDisabled(false);
-      setIsWarningShown(false);
-      setIsGgenerateButtonDisabled(false);
     } catch (error) {
       console.error("Error saving business type:", error);
+      setError("Ooops! We cannot generate suggestions buttons now...");
+    } finally {
       setShouldShowLoader(false);
       setIsAllDisabled(false);
       setIsWarningShown(false);
       setIsGgenerateButtonDisabled(false);
-      setError("Ooops! We cannot generate suggestions buttons now...");
     }
   };
 
   const handleSaveClick = () => {
     setConcernsAdvicesStorage([]);
+    setBusinessTypeStorage(value);
+    setConcerns(DEFAULT_CONCERNS);
     setBusinessTypeStorage(value);
   };
 

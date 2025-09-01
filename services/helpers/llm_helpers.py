@@ -46,13 +46,13 @@ def generate_bulleted_list(prompt: str, stop: list[str] = ["</s>"], max_tokens: 
         print("❌ Error during generation:", str(e))
         raise
 
-def generate_text_streaming_with_progress(prompt: str, max_tokens: int = 600):
+def generate_text_streaming_with_progress(prompt: str, max_tokens: int = 300, stop: list[str] | None = None, progress_step: int = 10):
     def token_stream():
         stream = llm(prompt, max_tokens=max_tokens, temperature=0.7, top_p=0.9, stop=["</s>"], stream=True)
         output_text = ""
         token_count = 0
         last_bucket = -1
-        progress_step = 20
+        # progress_step = 20
 
         for chunk in stream:
             token = chunk["choices"][0]["text"]
@@ -68,6 +68,6 @@ def generate_text_streaming_with_progress(prompt: str, max_tokens: int = 600):
 
         parsed = extract_domains_and_replies(output_text.strip())
 
-        yield f"[PARSED_OUTPUT]\n{json.dumps(parsed, ensure_ascii=False, indent=2)}"
+        yield f"[PARSED_OUTPUT]\n{json.dumps(parsed, ensure_ascii=False, indent=2)}".encode("utf-8")
 
     return token_stream()

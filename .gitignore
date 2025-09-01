@@ -2,6 +2,9 @@
 # OS & Editor junk
 # =========================
 .DS_Store
+services/.DS_Store
+tests/.DS_Store
+tests/unit/.DS_Store
 Thumbs.db
 ehthumbs.db
 *.swp
@@ -18,6 +21,7 @@ logs/
 *.ntvs*
 *.njsproj
 *.sln
+Archive.zip
 
 # =========================
 # Python

@@ -8,7 +8,7 @@ import {
   useShallowStore,
 } from "@/store";
 
-const concernButtons = [
+export const DEFAULT_CONCERNS = [
   { concern: "too expensive", advice: "Consider lowering the price" },
   { concern: "no budget right now", advice: "Offer a phased plan or deferred start; include a simple ROI estimate." },
   { concern: "need to think about it", advice: "Send a 1-page summary with ROI and book a short follow-up." },
@@ -24,7 +24,7 @@ export function ConcernsList() {
   const { concerns, setConcerns } = useShallowStore(concernsSetSelector);
 
   useEffect(() => {
-    setConcerns(concernButtons);
+    setConcerns(DEFAULT_CONCERNS);
   }, [setConcerns]);
 
   const handleConcernClick = (concern) => {
