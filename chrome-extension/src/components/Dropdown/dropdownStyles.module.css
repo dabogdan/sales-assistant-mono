@@ -1,0 +1,18 @@
+.dropdown {
+  height: 200px;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  transform: translateY(100%);
+  z-index: 1;
+  background-color: #fff;
+  overflow-y: auto;
+}
+.dropdownItem {
+  padding: 5px;
+  cursor: pointer;
+  color: #000000;
+  &:hover {
+    background-color: #f0f0f0;
+  }
+}

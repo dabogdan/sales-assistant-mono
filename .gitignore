@@ -1,15 +1,89 @@
+# =========================
+# OS & Editor junk
+# =========================
+.DS_Store
+services/.DS_Store
+tests/.DS_Store
+tests/unit/.DS_Store
+Thumbs.db
+ehthumbs.db
+*.swp
+*.swo
+*.swn
+*.tmp
+*.bak
+*.log
+logs/
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+Archive.zip
+
+# =========================
+# Python
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Packaging
+*.egg-info/
+.eggs/
+dist/
+build/
+develop-eggs/
+.installed.cfg
+
+# Byte-compiled C extensions
+*.so
+
+# Test & coverage
+.coverage
+.coverage.*
+.cache
+pytest_cache/
+htmlcov/
+
+# =========================
+# Node.js / Frontend
+# =========================
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# =========================
+# Project-specific ignores
+# =========================
+# Local models and heavy files
 vosk-model-ru/
 vosk-model-en-us-0.42-gigaspeech/
-venv/
 models/
 
-**/__pycache__/
-
+# Secrets
 .env
 
+# Local-only scripts (keep untracked)
 openai_util.py
 test_models.py
 local_interpreter.py
-
 agent_local.py
 agent_near.py

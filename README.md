@@ -1,4 +1,4 @@
-## Starting locally (I use venv environment for example)
+## Starting server locally (I use venv environment for example)
 
 1) Create `./models` directory and place there models, downloaded from this links `https://huggingface.co/NousResearch/Nous-Hermes-2-Mistral-7B-DPO-GGUF?show_file_info=Nous-Hermes-2-Mistral-7B-DPO.Q4_K_M.gguf`, `https://huggingface.co/TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF?show_file_info=tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf`
 2) Place your front end endpoint into `.env`. EXAMPLE: `FRONTEND_ORIGIN=http://localhost:5173`
@@ -9,6 +9,20 @@
 7) Run `pip install -r requirements.txt` to install dependencies (do it after any change in requirements.txt),
 8) Run server with `uvicorn main:app --reload`
 
+## How to Build, Deploy and Run the Frontend (Chrome Extension)
+
+1. Checkout to the branch `main`.
+1. Run `npm i`, `npm run build` (folder `dist` should be generated in the root of project).
+1. Open your browser's `Extentions` -> `Manage extensions`.
+1. Enable Developer mode in the top right corner.
+1. Click on `Load unpacked` and choose `dist` directory within the current project.
+1. Now `AI Sales Assistant` is in your extentions list.
+1. Start server (see [emotion-recognizer] https://github.com/dabogdan/sales-assistant-mono)
+1. Open any online stream service within you browser (Youtube) tab and start to play any video or audio stream with English speech human voice
+1. Next, open `AI Sales Assistant` (click its icon `A` in the extension bar)
+1. In the new opened window press `Start Capturing` button and wait for advising
+
+Your can modify `chrome-extension/public/manifest.json` file for further developing if it need.
 
 
 ## Interaction with server

@@ -1,0 +1,18 @@
+.icon {
+  height: 24px;
+  width: 24px;
+  fill: #000000;
+  &:hover {
+    fill: #7070fa;
+  }
+  cursor: pointer;
+}
+
+.disabled {
+  &:disabled {
+    background-color: #b3c6d9;
+    color: #7a8fa6;
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+}

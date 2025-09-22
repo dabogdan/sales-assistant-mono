@@ -1,0 +1,36 @@
+.container {
+  display: flex;
+  gap: 5px;
+  position: absolute;
+  top: 0;
+  right: 0;
+  transform: translateY(-100%);
+  z-index: 1;
+}
+
+.button {
+  composes: disabled from "@/commonStyles.module.css";
+
+  padding: 8px 16px;
+  font-size: 14px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  box-shadow: 0 3px rgba(0, 0, 0, 0.15);
+
+  &:hover {
+    background-color: #f0f0f0;
+  }
+
+  &:active {
+    background-color: #e0e0e0;
+    box-shadow: 0 1px rgba(0, 0, 0, 0.1);
+  }
+
+  /* &:disabled {
+    background-color: #b3c6d9;
+    color: #7a8fa6;
+    cursor: not-allowed;
+    opacity: 0.7;
+  } */
+}

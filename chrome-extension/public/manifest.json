@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "short_name": "Audio Transcriber",
+  "name": "Audio Transcriber",
+  "version": "1.0",
+  "description": "An extension that records audio and transcribes it to text.",
+  "action": {
+    "default_title": "Audio Transcriber"
+  },
+  "background": {
+    "service_worker": "service-worker.js"
+  },
+  "permissions": [
+    "tabCapture",
+    "offscreen",
+    "contentSettings",
+    "scripting",
+    "activeTab",
+    "tabs",
+    "storage",
+    "sidePanel"
+  ],
+  "host_permissions": ["<all_urls>"]
+}

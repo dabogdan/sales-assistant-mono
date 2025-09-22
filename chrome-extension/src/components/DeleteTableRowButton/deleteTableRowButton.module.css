@@ -1,0 +1,33 @@
+.button {
+  composes: disabled from "@/commonStyles.module.css";
+
+  background-color: #ff4d4f;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s, box-shadow 0.2s;
+  outline: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+
+  &:hover,
+  &:focus {
+    background-color: #d9363e;
+    box-shadow: 0 2px 8px rgba(255, 77, 79, 0.15);
+  }
+
+  &:active {
+    background-color: #b71c1c;
+  }
+
+  /* &:disabled {
+    background-color: #b3c6d9;
+    color: #7a8fa6;
+    cursor: not-allowed;
+    opacity: 0.7;
+  } */
+}

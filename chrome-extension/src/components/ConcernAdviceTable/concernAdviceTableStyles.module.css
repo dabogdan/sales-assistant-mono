@@ -1,0 +1,47 @@
+.table {
+  margin-top: 20px;
+  width: 100%;
+  border-collapse: collapse;
+
+  th,
+  td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+    width: fit-content;
+  }
+
+  th {
+    background-color: #f4f4f4;
+    text-align: center;
+  }
+
+  .row {
+    vertical-align: sub;
+    &:nth-child(even) {
+      background-color: #fafafa;
+    }
+  }
+
+  .cell {
+    position: relative;
+  }
+
+  .buttonCell {
+    width: 10%;
+  }
+}
+
+.input {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+}
+
+.loader {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}

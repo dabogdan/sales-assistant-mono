@@ -1,0 +1,8 @@
+.container {
+  padding: 5px;
+  position: absolute;
+  bottom: 0;
+  transform: translateY(100%);
+  box-shadow: 5px 5px 5px gray;
+  font-size: 14px;
+}
